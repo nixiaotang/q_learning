@@ -104,9 +104,4 @@ def main() :
         print(' Episode: ' + str(episode+1) + '  Steps: ' + str(step_counter) + '  Reward: ' + str(R))
 
 
-main()
-print(Q_table)
-
-
-
 
