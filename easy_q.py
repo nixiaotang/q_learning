@@ -1,32 +1,35 @@
 
+
 #import libraries
 from pygame import *
 from random import *
 import time
 
 #variables
-N_states = 6
-Actions = 2 # 0 = left, 1 = right
-Alpha = 0.1
+Actions = 4 # 0 = up, 1 = right, 2 = down, 3 = left
+Alpha = 0.4
 Gamma = 0.9
-Max_episodes = 15
+episode = 0
+Initial_state = 12
 Walking_reward = -0.04
-Treasure_state = 5
+Width = 5
+Height = 5
+Treasure_state = 2
 
 #make the Q matrix
 Q_table = []
-for i in range(N_states) :
+for i in range(Width*Height) :
     Q_table.append([])
     for j in range(Actions) :
         Q_table[i].append(0.0)
 
 #gui setup
-screen = display.set_mode((500, 275))
+screen = display.set_mode((500, 500))
 running = True
 
 #function to find the max integer in a array
 def max_in_ary (ary, index) :
-    largest = -1 
+    largest = -999
     largest_index = []
     
     for i in range(len(ary)) :
@@ -50,57 +53,67 @@ def choose_action(s) :
 
 #function to do the actions of the agent
 def do_action(s, a) :
-    r = Walking_reward
+    r = 0
+    r += Walking_reward
     s_ = s
-    if a == 0 : #move left
-        if s-1 >= 0 :
-            s_ = s-1
-    else : #move right
-        if (s == Treasure_state - 1) :
-            s_ = 'terminal'
-            r += 1
-        else :
+    if a == 0 : #move up
+        if s - Height >= 0 :
+            s_ = s - Height
+    elif a == 1 : #move right
+        if (s + 1) % Width != 0 :
             s_ = s + 1
+    elif a == 2 : #move down
+        if s + Height <= Width*Height-1 :
+            s_ = s + Height
+    else : #move left
+        if s % Width != 0 :
+            s_ = s - 1
 
+    if s_ == Treasure_state :
+        s_ = 'terminal'
+        r += 1
+    
     return s_, r
 
-#draw the environment
-def update_env(s):
+#function to draw the updated board
+def update_env (s) :
     screen.fill((255, 255, 255))
+    for i in range(Width) :
+        for j in range(Height) :
+            
+            if j * Height + i == s :
+                draw.rect(screen, (0, 255, 0), (i*100 + 50, j*100 + 50, 100, 100))
+                draw.rect(screen, (0, 180, 0), (i*100 + 50, j*100 + 50, 100, 100), 3)
+            elif s == ' terminal' and j * Height + 1 == Teasure_state :
+                print('Teasure')
+            elif j * Height + i == Treasure_state:
+                draw.rect(screen, (255, 255, 0), (i*100 + 50, j*100 + 50, 100, 100))
+                draw.rect(screen, (180, 180, 0), (i*100 + 50, j*100 + 50, 100, 100), 3)
+            else :
+                draw.rect(screen, (0, 0, 0), (i*100 + 50, j*100 + 50, 100, 100), 3)
     
-    for i in range(N_states) :
-        if i == s :
-            draw.rect(screen, (0, 0, 255), (i*70 + 40, 100, 70, 70))
-            draw.rect(screen, (0, 0, 180), (i*70 + 40, 100, 70, 70), 4)
-        elif i == Treasure_state :
-            draw.rect(screen, (255, 255, 0), (i*70 + 40, 100, 70, 70))
-            draw.rect(screen, (180, 180, 0), (i*70 + 40, 100, 70, 70), 4)
-        else :
-            draw.rect(screen, (0, 0, 0), (i*70 + 40, 100, 70, 70), 3)
-        
-    display.update()
+    display.flip()
 
-episode = 0
-
+#main loop
 while running :
     for action in event.get() :
         if action.type == QUIT:
             running = False
             break
+        
     step_counter = 0
-    S = 0
+    S = Initial_state
     R = 0
     terminated = False
 
     while not terminated :
-        time.sleep(0.1)
-        update_env(S)
-
         A = choose_action(S)
         S_ = do_action(S, A)[0]
         R += do_action(S, A)[1]
         q_predict = Q_table[S][A]
 
+        update_env(S)
+        
         if S_ != 'terminal' :
             q_target = R + Gamma * max_in_ary(Q_table[S_], False)
         else :
@@ -110,9 +123,9 @@ while running :
         Q_table[S][A] += Alpha * (q_target - q_predict)
         S = S_
         step_counter += 1
+        time.sleep(0.1)
 
-    print(' Episode: ' + str(episode+1) + '  Steps: ' + str(step_counter) + '  Reward: ' + str(R))
+    print(' Episode: ' + str(episode+1) + '  Steps: ' + str(step_counter) + '  Reward: ' + str(R))    
     episode = episode + 1
 
 quit()
-
