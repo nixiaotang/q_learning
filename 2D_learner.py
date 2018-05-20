@@ -2,7 +2,6 @@
 
 #import libraries
 from pygame import *
-from sys import *
 from random import *
 init()
 
@@ -99,7 +98,7 @@ def do_action(s, a) :
     return s_, r
 
 #function to draw the updated board
-def update_env (s) :
+def update(s) :
     screen.fill((255, 255, 255))
     for i in range(width) :
         for j in range(height) :
@@ -164,7 +163,7 @@ while running :
         q_predict = Q_table[S][A]
         
         #update board
-        update_env(S)
+        update(S)
         
         if S_ != 'end' :
             #Bellman Equation Q(s, a) = r+gamma maxQ(s')
@@ -176,12 +175,10 @@ while running :
         #TD Learning Q(s, a) = Q(s, a) + alpha(r+gamma*maxQ(s') - Q(s, a))
         Q_table[S][A] += alpha * (q_target - q_predict)
         S = S_
-
-    alpha = alpha/1.05
-
-    #print(' Episode: ' + str(episode+1) + '  Reward: ' + str(R))    
-    print("Episode " + str(episode) + "  Reward" + str(R) + '  Alpha' + str(alpha))
     
+    #print(' Episode: ' + str(episode+1) + '  Reward: ' + str(R))
+    print(R)
+    alpha = alpha/1.05
     episode = episode + 1
 
 quit()
